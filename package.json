@@ -1,5 +1,5 @@
 {
-  "name": "miio-lite",
+  "name": "miio-api",
   "version": "0.1.0",
   "description": "Xiami miIO protocol implementaion",
   "main": "dist/index.js",
