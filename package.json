@@ -1,0 +1,27 @@
+{
+  "name": "miio-lite",
+  "version": "0.1.0",
+  "description": "Xiami miIO protocol implementaion",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "russtone",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/node": "^13.9.2",
+    "tslint": "^6.1.0",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "debug": "^4.1.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "xiaomi",
+    "miio"
+  ]
+}
