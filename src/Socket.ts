@@ -44,7 +44,7 @@ class Socket {
    */
   @reusePromise()
   _connect(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.socket.connect(this.port, this.ip, () => {
         resolve();
       });
@@ -70,7 +70,7 @@ class Socket {
     data: Buffer,
     parse: (msg: Buffer) => T,
     match: (data: T) => boolean,
-    timeout: number = 5000
+    timeout: number = 5000,
   ): Promise<T> {
     if (!this._isConnected()) {
       await this._connect();
@@ -98,7 +98,7 @@ class Socket {
 
       this.socket.on("message", onMessage);
 
-      this.socket.send(data, err => {
+      this.socket.send(data, (err) => {
         if (err) {
           clearTimeout(timer);
           this.socket.removeListener("message", onMessage);

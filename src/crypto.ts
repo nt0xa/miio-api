@@ -7,10 +7,7 @@ import crypto from "crypto";
  * @returns The md5 hash of `data` (16 bytes)
  */
 export function hash(data: Buffer) {
-  return crypto
-    .createHash("md5")
-    .update(data)
-    .digest();
+  return crypto.createHash("md5").update(data).digest();
 }
 
 /**

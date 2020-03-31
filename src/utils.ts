@@ -24,7 +24,7 @@ export function randomString(n: number = 8): string {
  * @returns `Promise` which will be resolved after `ms` milliseconds
  */
 export async function sleep(ms: number): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, ms));
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -39,7 +39,7 @@ export async function sleep(ms: number): Promise<void> {
 export async function retry<T>(
   attemptFunc: () => Promise<T>,
   attempts: number = 3,
-  delay: number = 1000
+  delay: number = 1000,
 ): Promise<T> {
   let remaining = attempts;
 
@@ -76,17 +76,17 @@ export function reusePromise() {
   return function logMethod(
     _target: Object,
     _propertyName: string,
-    propertyDesciptor: PropertyDescriptor
+    propertyDesciptor: PropertyDescriptor,
   ): PropertyDescriptor {
     const method = propertyDesciptor.value;
 
-    propertyDesciptor.value = function(...args: any[]) {
+    propertyDesciptor.value = function (...args: any[]) {
       if (!savedPromise) {
         savedPromise = Promise.resolve(method.apply(this, args)).then(
-          result => {
+          (result) => {
             savedPromise = null;
             return result;
-          }
+          },
         );
       }
 

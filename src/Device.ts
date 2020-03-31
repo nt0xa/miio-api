@@ -52,7 +52,7 @@ class Device {
   static DEFAULT_CALL_OPTIONS: CallOptions = {
     attempts: 3,
     delay: 3000,
-    timeout: 3000
+    timeout: 3000,
   };
 
   protocol: Protocol;
@@ -81,7 +81,7 @@ class Device {
   constructor(params: DeviceParams) {
     this.protocol = new Protocol(
       params.deviceId,
-      Buffer.from(params.token, "hex")
+      Buffer.from(params.token, "hex"),
     );
     this.socket = params.socket || new Socket(params.address, Device.PORT);
     this.timestamp = params.timestamp || 0;
@@ -97,23 +97,23 @@ class Device {
    */
   static async _handshake(
     socket: Socket,
-    options?: CallOptions
+    options?: CallOptions,
   ): Promise<HandshakeResult> {
     const packet = await retry(
       async () => {
         return await socket.send(
           Protocol.HANDSHAKE_PACKET.toBuffer(),
           (msg: Buffer) => Packet.fromBuffer(msg),
-          packet => Protocol.isHandshake(packet)
+          (packet) => Protocol.isHandshake(packet),
         );
       },
       options.attempts,
-      options.delay
+      options.delay,
     );
 
     return {
       deviceId: packet.deviceId,
-      timestamp: packet.timestamp
+      timestamp: packet.timestamp,
     };
   }
 
@@ -131,7 +131,7 @@ class Device {
    */
   static async discover(
     params: DiscoverParams,
-    callOptions?: CallOptions
+    callOptions?: CallOptions,
   ): Promise<Device> {
     const options = { ...Device.DEFAULT_CALL_OPTIONS, ...callOptions };
     const socket = new Socket(params.address, Device.PORT);
@@ -144,7 +144,7 @@ class Device {
       address: params.address,
       socket: socket,
       timestamp: timestamp,
-      lastSeenAt: Date.now()
+      lastSeenAt: Date.now(),
     });
   }
 
@@ -178,7 +178,7 @@ class Device {
   async call(
     method: string,
     params?: any,
-    callOptions?: CallOptions
+    callOptions?: CallOptions,
   ): Promise<any> {
     const logWithId = log.extend(randomString());
 
@@ -201,7 +201,7 @@ class Device {
 
     const request = this.protocol.packRequest(
       { id, method, params },
-      this.timestamp
+      this.timestamp,
     );
 
     const requestBuffer = request.toBuffer();
@@ -225,11 +225,11 @@ class Device {
               return true;
             }
             return false;
-          }
+          },
         );
       },
       options.attempts,
-      options.timeout
+      options.timeout,
     );
 
     logWithId("<- %O", response);

@@ -20,7 +20,7 @@ class Packet {
     DEVICE_ID: 8,
     TIMESTAMP: 12,
     CHECKSUM: 16,
-    DATA: 32
+    DATA: 32,
   };
 
   static HEADER_SIZE = 32;
@@ -63,7 +63,7 @@ class Packet {
 
     if (size !== buf.byteLength) {
       throw new Error(
-        `Invalid packet size, expected ${size} got ${buf.byteLength}`
+        `Invalid packet size, expected ${size} got ${buf.byteLength}`,
       );
     }
 

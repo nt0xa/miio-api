@@ -22,9 +22,9 @@ class Protocol {
       deviceId: 0xffffffff,
       timestamp: 0xffffffff,
       checksum: Buffer.alloc(Packet.CHECKSUM_SIZE, 0xff),
-      data: Buffer.alloc(0)
+      data: Buffer.alloc(0),
     },
-    0xffffffff
+    0xffffffff,
   );
 
   deviceId: number;
@@ -69,7 +69,7 @@ class Protocol {
     // If no params, set default to []
     const payload = {
       ...req,
-      params: req.params || []
+      params: req.params || [],
     };
 
     const data = Buffer.from(JSON.stringify(payload) + "\x00");
@@ -79,7 +79,7 @@ class Protocol {
     const fields = {
       deviceId: this.deviceId,
       timestamp: timestamp,
-      data: encryptedData
+      data: encryptedData,
     };
 
     return new Packet({ ...fields, checksum: this._calcChecksum(fields) });
@@ -113,7 +113,7 @@ class Protocol {
     // to calculate actual checksum.
     const dummy = new Packet({
       ...fields,
-      checksum: this.token
+      checksum: this.token,
     });
 
     return hash(dummy.toBuffer());
