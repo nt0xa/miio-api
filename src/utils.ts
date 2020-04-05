@@ -13,7 +13,7 @@ export function randomInt(): number {
  * @param n - length of string
  * @returns random string of length `n`
  */
-export function randomString(n: number = 8): string {
+export function randomString(n = 8): string {
   return [...Array(n)].map(() => Math.random().toString(36)[2]).join("");
 }
 
@@ -38,13 +38,13 @@ export async function sleep(ms: number): Promise<void> {
  */
 export async function retry<T>(
   attemptFunc: () => Promise<T>,
-  attempts: number = 3,
-  delay: number = 1000,
+  attempts = 3,
+  delay = 1000,
 ): Promise<T> {
   let remaining = attempts;
 
   async function makeAttempt(): Promise<T> {
-    const onError = async (err: Error) => {
+    const onError = async (err: Error): Promise<T> => {
       if (remaining === 0) {
         throw err;
       }
@@ -70,17 +70,23 @@ export async function retry<T>(
  * Decorator which caches `Promise` returned by wrapped function until it will be resolved.
  * Useful for asynchronous actions which must be done only once.
  */
-export function reusePromise() {
-  let savedPromise: Promise<any> | null = null;
+export function reusePromise<T, O = unknown>(): (
+  target: O,
+  propertyName: string,
+  propertyDesciptor: PropertyDescriptor,
+) => PropertyDescriptor {
+  let savedPromise: Promise<T> | null = null;
 
-  return function logMethod(
-    _target: Object,
+  return function wrapper(
+    _target: O,
     _propertyName: string,
     propertyDesciptor: PropertyDescriptor,
   ): PropertyDescriptor {
     const method = propertyDesciptor.value;
 
-    propertyDesciptor.value = function (...args: any[]) {
+    propertyDesciptor.value = function (
+      ...args: Parameters<typeof method>
+    ): Promise<T> {
       if (!savedPromise) {
         savedPromise = Promise.resolve(method.apply(this, args)).then(
           (result) => {

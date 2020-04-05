@@ -1,15 +1,15 @@
 import Packet, { PacketDataRequired } from "./Packet";
 import { hash, encrypt, decrypt } from "./crypto";
 
-export type Request = {
+export type Request<ParamsType extends []> = {
   id: number;
   method: string;
-  params?: any;
+  params?: ParamsType;
 };
 
-export type Response = {
+export type Response<ResultType> = {
   id: number;
-  result?: any[];
+  result?: ResultType;
   error?: {
     code: number;
     message: string;
@@ -65,7 +65,10 @@ class Protocol {
    * @param timestamp - device timestamp
    * @returns `Packet` for the given `req` and `timestamp`
    */
-  packRequest(req: Request, timestamp: number): Packet {
+  packRequest<ParamsType extends []>(
+    req: Request<ParamsType>,
+    timestamp: number,
+  ): Packet {
     // If no params, set default to []
     const payload = {
       ...req,
@@ -91,7 +94,7 @@ class Protocol {
    * @param packet - response `Packet`
    * @returns `Response` extracted from the given `packet`
    */
-  unpackResponse(packet: Packet): Response {
+  unpackResponse<ResultType>(packet: Packet): Response<ResultType> {
     if (!this._validateChecksum(packet)) {
       throw new Error("Invalid packet checksum");
     }

@@ -38,7 +38,7 @@ class Packet {
    * @param fields - fields required to build a `Packet`
    * @param unknown - "unknown" field of packet (0xffffffff for handshake and 0 for any other packet)
    */
-  constructor(fields: PacketDataRequired, unknown: number = 0) {
+  constructor(fields: PacketDataRequired, unknown = 0) {
     this.deviceId = fields.deviceId;
     this.timestamp = fields.timestamp;
     this.checksum = fields.checksum;
@@ -85,7 +85,7 @@ class Packet {
    *
    * @returns `Packet` length in bytes
    */
-  get length() {
+  get length(): number {
     return Packet.HEADER_SIZE + this.data.byteLength;
   }
 
@@ -95,7 +95,7 @@ class Packet {
    * @returns `Buffer` with `Packet` data
    */
   toBuffer(): Buffer {
-    let buf = Buffer.alloc(this.length);
+    const buf = Buffer.alloc(this.length);
 
     buf.writeUInt16BE(Packet.MAGIC, Packet.OFFSETS.MAGIC);
     buf.writeUInt16BE(this.length, Packet.OFFSETS.SIZE);

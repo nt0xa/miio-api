@@ -6,7 +6,7 @@ import crypto from "crypto";
  * @param data - data to hash
  * @returns The md5 hash of `data` (16 bytes)
  */
-export function hash(data: Buffer) {
+export function hash(data: Buffer): Buffer {
   return crypto.createHash("md5").update(data).digest();
 }
 
@@ -18,7 +18,7 @@ export function hash(data: Buffer) {
  * @param data - data to encrypt
  * @returns `data` encrypted with AES-128-CBC using provided `key` and `iv`.
  */
-export function encrypt(key: Buffer, iv: Buffer, data: Buffer) {
+export function encrypt(key: Buffer, iv: Buffer, data: Buffer): Buffer {
   const cipher = crypto.createCipheriv("aes-128-cbc", key, iv);
   return Buffer.concat([cipher.update(data), cipher.final()]);
 }
@@ -31,7 +31,7 @@ export function encrypt(key: Buffer, iv: Buffer, data: Buffer) {
  * @param data - data to decrypt (length = 16 * n)
  * @returns decrypted `data`.
  */
-export function decrypt(key: Buffer, iv: Buffer, data: Buffer) {
+export function decrypt(key: Buffer, iv: Buffer, data: Buffer): Buffer {
   const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
   return Buffer.concat([decipher.update(data), decipher.final()]);
 }

@@ -9,8 +9,8 @@ const logger = debug("miio-lite");
  * @param blockSize - number of bytes on line
  * @returns hex dump of `buffer` with `blockSize` bytes per line.
  */
-export function hexdump(buffer: Buffer, blockSize: number = 16) {
-  let lines = [];
+export function hexdump(buffer: Buffer, blockSize = 16): string {
+  const lines = [];
   for (let i = 0; i < buffer.length; i += blockSize) {
     const block = buffer.slice(i, Math.min(i + blockSize, buffer.length));
     const hex = block.toString("hex");

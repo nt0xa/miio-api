@@ -175,11 +175,11 @@ class Device {
    * @param callOptions.timeout - call response timeout
    * @returns result `method` call
    */
-  async call(
+  async call<ParamsType extends [], ResultType>(
     method: string,
-    params?: any,
+    params?: ParamsType,
     callOptions?: CallOptions,
-  ): Promise<any> {
+  ): Promise<ResultType> {
     const logWithId = log.extend(randomString());
 
     const options = { ...Device.DEFAULT_CALL_OPTIONS, ...callOptions };
@@ -215,7 +215,7 @@ class Device {
           (responseBuffer: Buffer) => {
             const responsePacket = Packet.fromBuffer(responseBuffer);
             const response = !Protocol.isHandshake(responsePacket)
-              ? this.protocol.unpackResponse(responsePacket)
+              ? this.protocol.unpackResponse<ResultType>(responsePacket)
               : undefined;
             return { responseBuffer, responsePacket, response };
           },

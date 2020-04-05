@@ -66,46 +66,48 @@ class Socket {
    * @returns `Promise` which will be resolved when matched response come or
    *    rejected in case of error or timeout
    */
-  async send<T>(
+  async send<ResponseType>(
     data: Buffer,
-    parse: (msg: Buffer) => T,
-    match: (data: T) => boolean,
-    timeout: number = 5000,
-  ): Promise<T> {
+    parse: (msg: Buffer) => ResponseType,
+    match: (data: ResponseType) => boolean,
+    timeout = 5000,
+  ): Promise<ResponseType> {
     if (!this._isConnected()) {
       await this._connect();
     }
 
     let timer: NodeJS.Timer = null;
 
-    const resultPromise: Promise<T> = new Promise((resolve, reject) => {
-      const onMessage = (msg: Buffer) => {
-        const parsed = parse(msg);
+    const resultPromise: Promise<ResponseType> = new Promise(
+      (resolve, reject) => {
+        const onMessage = (msg: Buffer): void => {
+          const parsed = parse(msg);
 
-        if (match(parsed)) {
-          clearTimeout(timer);
-          this.socket.removeListener("message", onMessage);
-          resolve(parsed);
+          if (match(parsed)) {
+            clearTimeout(timer);
+            this.socket.removeListener("message", onMessage);
+            resolve(parsed);
+          }
+        };
+
+        if (timeout) {
+          timer = setTimeout(() => {
+            this.socket.removeListener("message", onMessage);
+            reject(new Error("Socket timeout"));
+          }, timeout);
         }
-      };
 
-      if (timeout) {
-        timer = setTimeout(() => {
-          this.socket.removeListener("message", onMessage);
-          reject(new Error("Socket timeout"));
-        }, timeout);
-      }
+        this.socket.on("message", onMessage);
 
-      this.socket.on("message", onMessage);
-
-      this.socket.send(data, (err) => {
-        if (err) {
-          clearTimeout(timer);
-          this.socket.removeListener("message", onMessage);
-          reject(err);
-        }
-      });
-    });
+        this.socket.send(data, (err) => {
+          if (err) {
+            clearTimeout(timer);
+            this.socket.removeListener("message", onMessage);
+            reject(err);
+          }
+        });
+      },
+    );
 
     return resultPromise;
   }
