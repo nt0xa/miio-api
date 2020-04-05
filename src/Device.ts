@@ -244,6 +244,13 @@ class Device {
 
     return response.result;
   }
+
+  /**
+   * Closes the socket associated with the device.
+   */
+  async close(): Promise<void> {
+    await this.socket.close();
+  }
 }
 
 export default Device;

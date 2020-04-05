@@ -111,6 +111,17 @@ class Socket {
 
     return resultPromise;
   }
+
+  /**
+   * Closes socket.
+   */
+  close(): Promise<void> {
+    return new Promise((resolve) => {
+      this.socket.close(() => {
+        resolve();
+      });
+    });
+  }
 }
 
 export default Socket;
