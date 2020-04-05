@@ -3,8 +3,9 @@
   "version": "0.1.2",
   "description": "Xiami miIO protocol implementaion",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --declaration",
     "format": "prettier --write src",
     "lint": "tsc --noEmit && eslint --ext ts src"
   },
