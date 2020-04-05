@@ -175,7 +175,7 @@ class Device {
    * @param callOptions.timeout - call response timeout
    * @returns result `method` call
    */
-  async call<ParamsType extends [], ResultType>(
+  async call<ParamsType extends Array<unknown>, ResultType>(
     method: string,
     params?: ParamsType,
     callOptions?: CallOptions,

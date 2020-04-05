@@ -1,10 +1,10 @@
 import Packet, { PacketDataRequired } from "./Packet";
 import { hash, encrypt, decrypt } from "./crypto";
 
-export type Request<ParamsType extends []> = {
+export type Request<ParamsType extends Array<unknown>> = {
   id: number;
   method: string;
-  params?: ParamsType;
+  params?: ParamsType | [];
 };
 
 export type Response<ResultType> = {
@@ -65,7 +65,7 @@ class Protocol {
    * @param timestamp - device timestamp
    * @returns `Packet` for the given `req` and `timestamp`
    */
-  packRequest<ParamsType extends []>(
+  packRequest<ParamsType extends Array<unknown>>(
     req: Request<ParamsType>,
     timestamp: number,
   ): Packet {
