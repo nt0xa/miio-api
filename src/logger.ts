@@ -1,6 +1,6 @@
 import debug from "debug";
 
-const logger = debug("miio-lite");
+const logger = debug("miio-api");
 
 /**
  * Returns hex dump of provided binary data.
