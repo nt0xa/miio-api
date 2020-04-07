@@ -1,18 +1,26 @@
 {
   "compilerOptions": {
+    /* Basic options */
+    "target": "es2018",
+    "lib": ["es2018"],
     "module": "commonjs",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es6",
-    "noImplicitAny": true,
-    "moduleResolution": "node",
-    "sourceMap": true,
+    "rootDir": "src",
     "outDir": "dist",
+    "declaration": true,
+
+    /* Strict type-checking options */
+    "strict": true,
+    "noImplicitAny": true,
+
+    /* Module resolution options */
+    "moduleResolution": "node",
     "baseUrl": "src",
-    "paths": {
-      "*": ["node_modules/*"]
-    },
+    "esModuleInterop": true,
+
+    /* Source map options */
+    "sourceMap": true,
+
+    /* Experimental options */
     "experimentalDecorators": true
-  },
-  "include": ["src/**/*"]
+  }
 }

@@ -76,7 +76,7 @@ class Socket {
       await this._connect();
     }
 
-    let timer: NodeJS.Timer = null;
+    let timer: NodeJS.Timer | null = null;
 
     const resultPromise: Promise<ResponseType> = new Promise(
       (resolve, reject) => {
@@ -84,7 +84,9 @@ class Socket {
           const parsed = parse(msg);
 
           if (match(parsed)) {
-            clearTimeout(timer);
+            if (timer) {
+              clearTimeout(timer);
+            }
             this.socket.removeListener("message", onMessage);
             resolve(parsed);
           }
@@ -101,7 +103,9 @@ class Socket {
 
         this.socket.send(data, (err) => {
           if (err) {
-            clearTimeout(timer);
+            if (timer) {
+              clearTimeout(timer);
+            }
             this.socket.removeListener("message", onMessage);
             reject(err);
           }

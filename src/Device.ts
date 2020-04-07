@@ -97,8 +97,9 @@ class Device {
    */
   static async _handshake(
     socket: Socket,
-    options?: CallOptions,
+    callOptions?: CallOptions,
   ): Promise<HandshakeResult> {
+    const options = { ...Device.DEFAULT_CALL_OPTIONS, ...callOptions };
     const packet = await retry(
       async () => {
         return await socket.send(
@@ -237,7 +238,11 @@ class Device {
     this.timestamp = responsePacket.timestamp;
     this.lastSeenAt = Date.now();
 
-    if (response.error) {
+    if (!response) {
+      throw new Error("Invalid response");
+    }
+
+    if ("error" in response) {
       const err = response.error;
       throw new DeviceError(err.message, err.code);
     }

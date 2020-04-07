@@ -7,14 +7,18 @@ export type Request<ParamsType extends Array<unknown>> = {
   params?: ParamsType | [];
 };
 
-export type Response<ResultType> = {
-  id: number;
-  result?: ResultType;
-  error?: {
-    code: number;
-    message: string;
-  };
-};
+export type Response<ResultType> =
+  | {
+      id: number;
+      result: ResultType;
+    }
+  | {
+      id: number;
+      error: {
+        code: number;
+        message: string;
+      };
+    };
 
 class Protocol {
   static HANDSHAKE_PACKET = new Packet(
