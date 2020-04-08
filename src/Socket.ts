@@ -1,6 +1,17 @@
 import dgram from "dgram";
 import { reusePromise } from "./utils";
 
+class SocketError extends Error {
+  /**
+   * Represents socket error.
+   *
+   * @param message - error message
+   */
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 class Socket {
   ip: string;
   port: number;
@@ -76,38 +87,44 @@ class Socket {
       await this._connect();
     }
 
-    let timer: NodeJS.Timer | null = null;
+    let timer: NodeJS.Timer;
+    let onMessage: (msg: Buffer) => void, onError: (err: Error) => void;
+
+    const done = (onFinish: () => void): void => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+      this.socket.removeListener("message", onMessage);
+      this.socket.removeListener("error", onError);
+      onFinish();
+    };
 
     const resultPromise: Promise<ResponseType> = new Promise(
       (resolve, reject) => {
-        const onMessage = (msg: Buffer): void => {
+        onMessage = (msg: Buffer): void => {
           const parsed = parse(msg);
 
           if (match(parsed)) {
-            if (timer) {
-              clearTimeout(timer);
-            }
-            this.socket.removeListener("message", onMessage);
-            resolve(parsed);
+            done(() => resolve(parsed));
           }
+        };
+
+        onError = (err: Error): void => {
+          done(() => reject(new SocketError(err.message)));
         };
 
         if (timeout) {
           timer = setTimeout(() => {
-            this.socket.removeListener("message", onMessage);
-            reject(new Error("Socket timeout"));
+            done(() => reject(new SocketError("Timeout")));
           }, timeout);
         }
 
         this.socket.on("message", onMessage);
+        this.socket.on("error", onError);
 
         this.socket.send(data, (err) => {
           if (err) {
-            if (timer) {
-              clearTimeout(timer);
-            }
-            this.socket.removeListener("message", onMessage);
-            reject(err);
+            done(() => reject(new SocketError(err.message)));
           }
         });
       },
@@ -121,9 +138,13 @@ class Socket {
    */
   close(): Promise<void> {
     return new Promise((resolve) => {
-      this.socket.close(() => {
+      try {
+        this.socket.close(() => {
+          resolve();
+        });
+      } catch (err) {
         resolve();
-      });
+      }
     });
   }
 }

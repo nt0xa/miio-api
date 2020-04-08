@@ -137,14 +137,22 @@ class Device {
     const options = { ...Device.DEFAULT_CALL_OPTIONS, ...callOptions };
     const socket = new Socket(params.address, Device.PORT);
 
-    const { deviceId, timestamp } = await Device._handshake(socket, options);
+    let handshake;
+
+    // Exception is handled to be able to close socket in case of error.
+    try {
+      handshake = await Device._handshake(socket, options);
+    } catch (err) {
+      await socket.close();
+      throw err;
+    }
 
     return new Device({
-      deviceId: deviceId,
+      deviceId: handshake.deviceId,
       token: params.token,
       address: params.address,
       socket: socket,
-      timestamp: timestamp,
+      timestamp: handshake.timestamp,
       lastSeenAt: Date.now(),
     });
   }
