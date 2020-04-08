@@ -21,10 +21,12 @@ import miio from "miio-api";
 type Power = "on" | "off";
 type Props = "power" | "humidity";
 
-(async () => {
+(async (): Promise<void> => {
+  let device;
+
   try {
-    const device = await miio.device({
-      address: "192.168.86.31",
+    device = await miio.device({
+      address: "192.168.1.31",
       token: "93db466137accd4c9c6204315c542f9c",
     });
 
@@ -33,10 +35,10 @@ type Props = "power" | "humidity";
       "humidity",
     ]);
     console.log(info);
-
-    await device.close();
   } catch (err) {
-    console.error(err);
+    console.error("ERROR: " + err);
+  } finally {
+    await device?.close();
   }
 })();
 
@@ -48,18 +50,22 @@ type Props = "power" | "humidity";
 const miio = require("miio-api");
 
 (async () => {
+  let device;
+
   try {
-    const device = await miio.device({
+    device = await miio.device({
       address: "192.168.86.31",
       token: "93db466137accd4c9c6204315c542f9c",
     });
 
     const info = await device.call("get_prop", ["power"]);
     console.log(info);
-
-    await device.close();
   } catch (err) {
-    console.error(err);
+    console.error("ERROR: " + err);
+  } finally {
+    if (device) {
+      device.close();
+    }
   }
 })();
 ```

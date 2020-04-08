@@ -259,9 +259,9 @@ class Device {
   }
 
   /**
-   * Closes the socket associated with the device.
+   * Cleans resources associated with the device.
    */
-  async close(): Promise<void> {
+  async destroy(): Promise<void> {
     await this.socket.close();
   }
 }
