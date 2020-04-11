@@ -1,4 +1,4 @@
-import Packet, { PacketDataRequired } from "./Packet";
+import Packet, { PacketDataRequired } from "./packet";
 import { hash, encrypt, decrypt } from "./crypto";
 
 export type Request<ParamsType extends Array<unknown>> = {

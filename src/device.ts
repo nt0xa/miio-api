@@ -1,6 +1,6 @@
-import Protocol from "./Protocol";
-import Packet from "./Packet";
-import Socket from "./Socket";
+import Protocol from "./protocol";
+import Packet from "./packet";
+import Socket from "./socket";
 import logger from "./logger";
 import { randomInt, retry, reusePromise, randomString } from "./utils";
 

@@ -1,5 +1,5 @@
-import Device from "./Device";
+import Device from "./device";
 
-export const device = Device.discover;
+const device = Device.discover;
 
-export default { Device, device };
+export { Device, device };
