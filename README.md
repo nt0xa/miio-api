@@ -16,7 +16,7 @@ npm install miio-api
 ### typescript
 
 ```typescript
-import miio from "miio-api";
+import * as miio from "miio-api";
 
 type Power = "on" | "off";
 type Props = "power" | "humidity";
@@ -38,7 +38,7 @@ type Props = "power" | "humidity";
   } catch (err) {
     console.error("ERROR: " + err);
   } finally {
-    await device?.close();
+    await device?.destroy();
   }
 })();
 
@@ -64,7 +64,7 @@ const miio = require("miio-api");
     console.error("ERROR: " + err);
   } finally {
     if (device) {
-      device.close();
+      device.destroy();
     }
   }
 })();
