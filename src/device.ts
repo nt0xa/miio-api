@@ -242,10 +242,11 @@ class Device {
             }
             return false;
           },
+          options.timeout,
         );
       },
       options.attempts,
-      options.timeout,
+      options.delay,
     );
 
     logWithId("<- %O", response);
