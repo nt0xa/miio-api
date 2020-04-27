@@ -31,10 +31,10 @@ class Protocol {
     0xffffffff,
   );
 
-  deviceId: number;
-  key: Buffer;
-  iv: Buffer;
-  token: Buffer;
+  private deviceId: number;
+  private key: Buffer;
+  private iv: Buffer;
+  private token: Buffer;
 
   /**
    * Represents miIO protocol.
@@ -89,7 +89,7 @@ class Protocol {
       data: encryptedData,
     };
 
-    return new Packet({ ...fields, checksum: this._calcChecksum(fields) });
+    return new Packet({ ...fields, checksum: this.calcChecksum(fields) });
   }
 
   /**
@@ -99,7 +99,7 @@ class Protocol {
    * @returns `Response` extracted from the given `packet`
    */
   unpackResponse<ResultType>(packet: Packet): Response<ResultType> {
-    if (!this._validateChecksum(packet)) {
+    if (!this.validateChecksum(packet)) {
       throw new Error("Invalid packet checksum");
     }
 
@@ -115,7 +115,7 @@ class Protocol {
    * @param fields - `Packet` fields required for checksum calculation.
    * @returns checksum for `Packet` constructed from `fields`
    */
-  _calcChecksum(fields: Omit<PacketDataRequired, "checksum">): Buffer {
+  private calcChecksum(fields: Omit<PacketDataRequired, "checksum">): Buffer {
     // Build dummy packet with token in "checksum" field
     // to calculate actual checksum.
     const dummy = new Packet({
@@ -132,9 +132,9 @@ class Protocol {
    * @param packet - `Packet` to validate
    * @returns `true` if checksum is correct and `false` otherwise
    */
-  _validateChecksum(packet: Packet): boolean {
+  private validateChecksum(packet: Packet): boolean {
     const { checksum: actual, ...fields } = packet;
-    const expected = this._calcChecksum(fields);
+    const expected = this.calcChecksum(fields);
     return expected.equals(actual);
   }
 }

@@ -35,7 +35,7 @@ class Socket {
    *
    * @returns `true` if socket is connected and `false` otherwise
    */
-  _isConnected(): boolean {
+  private isConnected(): boolean {
     try {
       this.socket.remoteAddress();
       return true;
@@ -54,7 +54,7 @@ class Socket {
    * is called only once in case of multiple simultaneous method calls.
    */
   @reusePromise()
-  _connect(): Promise<void> {
+  private connect(): Promise<void> {
     return new Promise((resolve) => {
       this.socket.connect(this.port, this.ip, () => {
         resolve();
@@ -83,8 +83,8 @@ class Socket {
     match: (data: ResponseType) => boolean,
     timeout = 5000,
   ): Promise<ResponseType> {
-    if (!this._isConnected()) {
-      await this._connect();
+    if (!this.isConnected()) {
+      await this.connect();
     }
 
     let timer: NodeJS.Timer;

@@ -55,11 +55,16 @@ class Device {
     timeout: 3000,
   };
 
-  protocol: Protocol;
-  socket: Socket;
+  private protocol: Protocol;
+  private socket: Socket;
 
-  timestamp: number;
-  lastSeenAt: number;
+  private timestamp: number;
+  private lastSeenAt: number;
+
+  /**
+   * Device identifier.
+   */
+  id: number;
 
   /**
    * Represents a miIO `Device`.
@@ -79,6 +84,7 @@ class Device {
    * be able to avoid double handshake at the start.
    */
   constructor(params: DeviceParams) {
+    this.id = params.deviceId;
     this.protocol = new Protocol(
       params.deviceId,
       Buffer.from(params.token, "hex"),
@@ -95,7 +101,7 @@ class Device {
    * @param options - call options
    * @returns `Promise` with handshake result
    */
-  static async _handshake(
+  private static async handshake(
     socket: Socket,
     callOptions?: CallOptions,
   ): Promise<HandshakeResult> {
@@ -106,6 +112,7 @@ class Device {
           Protocol.HANDSHAKE_PACKET.toBuffer(),
           (msg: Buffer) => Packet.fromBuffer(msg),
           (packet) => Protocol.isHandshake(packet),
+          options.timeout,
         );
       },
       options.attempts,
@@ -141,7 +148,7 @@ class Device {
 
     // Exception is handled to be able to close socket in case of error.
     try {
-      handshake = await Device._handshake(socket, options);
+      handshake = await Device.handshake(socket, options);
     } catch (err) {
       await socket.close();
       throw err;
@@ -169,8 +176,8 @@ class Device {
    *
    */
   @reusePromise()
-  _handshake(options?: CallOptions): Promise<HandshakeResult> {
-    return Device._handshake(this.socket, options);
+  private handshake(options?: CallOptions): Promise<HandshakeResult> {
+    return Device.handshake(this.socket, options);
   }
 
   /**
@@ -198,7 +205,7 @@ class Device {
     if (secondsPassed > Device.MAX_CALL_INTERVAL) {
       logWithId("-> handshake");
 
-      const { timestamp } = await this._handshake(options);
+      const { timestamp } = await this.handshake(options);
       this.timestamp = timestamp;
       this.lastSeenAt = Date.now();
     }
