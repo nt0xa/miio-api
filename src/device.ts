@@ -2,7 +2,7 @@ import Protocol from "./protocol";
 import Packet from "./packet";
 import Socket from "./socket";
 import logger from "./logger";
-import { randomInt, retry, reusePromise, randomString } from "./utils";
+import { randomInt, retry, randomString } from "./utils";
 
 const log = logger.extend("device");
 
@@ -60,6 +60,7 @@ class Device {
 
   private timestamp: number;
   private lastSeenAt: number;
+  private handshakePromise: Promise<HandshakeResult> | null;
 
   /**
    * Device identifier.
@@ -92,6 +93,7 @@ class Device {
     this.socket = params.socket || new Socket(params.address, Device.PORT);
     this.timestamp = params.timestamp || 0;
     this.lastSeenAt = params.lastSeenAt || 0;
+    this.handshakePromise = null;
   }
 
   /**
@@ -171,13 +173,19 @@ class Device {
    * @returns `Promise` with handshake result
    *
    * @remarks
-   * Method is wrapped by `reusePromise` decorator to be sure that handshake
-   * is done only once in case of multiple simultaneous method calls.
+   * If called simultaneous do handshake only once and returns the same
+   * promise for all callers
    *
    */
-  @reusePromise()
   private handshake(options?: CallOptions): Promise<HandshakeResult> {
-    return Device.handshake(this.socket, options);
+    if (!this.handshakePromise) {
+      this.handshakePromise = Device.handshake(this.socket, options).finally(
+        () => {
+          this.handshakePromise = null;
+        },
+      );
+    }
+    return this.handshakePromise;
   }
 
   /**

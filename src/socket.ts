@@ -1,5 +1,4 @@
 import dgram from "dgram";
-import { reusePromise } from "./utils";
 
 class SocketError extends Error {
   /**
@@ -18,6 +17,8 @@ class Socket {
 
   socket: dgram.Socket;
 
+  private connectPromise: Promise<void> | null;
+
   /**
    * Represents a UDP socket.
    *
@@ -28,6 +29,7 @@ class Socket {
     this.ip = ip;
     this.port = port;
     this.socket = dgram.createSocket("udp4");
+    this.connectPromise = null;
   }
 
   /**
@@ -50,16 +52,21 @@ class Socket {
    * @returns `Promise` which will be resolved when socket is connected
    *
    * @remarks
-   * Method is wrapped by `reusePromise` decorator to be sure that `socket.connect`
-   * is called only once in case of multiple simultaneous method calls.
+   * If called simultaneous do connect only once and return same promise for
+   * all callers
    */
-  @reusePromise()
   private connect(): Promise<void> {
-    return new Promise((resolve) => {
-      this.socket.connect(this.port, this.ip, () => {
-        resolve();
+    if (!this.connectPromise) {
+      this.connectPromise = new Promise<void>((resolve) => {
+        this.socket.connect(this.port, this.ip, () => {
+          resolve();
+        });
+      }).finally(() => {
+        this.connectPromise = null;
       });
-    });
+    }
+
+    return this.connectPromise;
   }
 
   /**
