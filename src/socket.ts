@@ -14,6 +14,7 @@ class SocketError extends Error {
 class Socket {
   ip: string;
   port: number;
+  version: number;
 
   socket: dgram.Socket;
 
@@ -29,6 +30,7 @@ class Socket {
     this.ip = ip;
     this.port = port;
     this.socket = dgram.createSocket("udp4");
+    this.version = parseInt(process.versions.node.split(".")[0]);
     this.connectPromise = null;
   }
 
@@ -90,8 +92,12 @@ class Socket {
     match: (data: ResponseType) => boolean,
     timeout = 5000,
   ): Promise<ResponseType> {
-    if (!this.isConnected()) {
-      await this.connect();
+    // `connect` function was added in v12 of NodeJS.
+    // https://nodejs.org/api/dgram.html#dgram_socket_connect_port_address_callback
+    if (this.version >= 12) {
+      if (!this.isConnected()) {
+        await this.connect();
+      }
     }
 
     let timer: NodeJS.Timer;
@@ -129,11 +135,19 @@ class Socket {
         this.socket.on("message", onMessage);
         this.socket.on("error", onError);
 
-        this.socket.send(data, (err) => {
+        const callback = (err: Error | null) => {
           if (err) {
-            done(() => reject(new SocketError(err.message)));
+            onError(err);
           }
-        });
+        };
+
+        if (this.version >= 12) {
+          this.socket.send(data, callback);
+        } else {
+          // Older NodeJS versions don't have "connected UDP socket",
+          // so we need to pass address and port.
+          this.socket.send(data, this.port, this.ip, callback);
+        }
       },
     );
 
