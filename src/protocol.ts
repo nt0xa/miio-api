@@ -1,4 +1,5 @@
 import Packet, { PacketDataRequired } from "./packet";
+import { ProtocolError } from "./errors";
 import { hash, encrypt, decrypt } from "./crypto";
 
 export type Request<ParamsType extends Array<unknown>> = {
@@ -100,7 +101,7 @@ class Protocol {
    */
   unpackResponse<ResultType>(packet: Packet): Response<ResultType> {
     if (!this.validateChecksum(packet)) {
-      throw new Error("Invalid packet checksum");
+      throw new ProtocolError("Invalid packet checksum");
     }
 
     const decrypted = decrypt(this.key, this.iv, packet.data);

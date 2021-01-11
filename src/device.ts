@@ -2,9 +2,8 @@ import Protocol from "./protocol";
 import Packet from "./packet";
 import Socket from "./socket";
 import logger from "./logger";
+import { DeviceError } from "./errors";
 import { randomInt, retry, randomString } from "./utils";
-
-const log = logger.extend("device");
 
 export type DeviceParams = {
   address: string;
@@ -31,21 +30,6 @@ export type CallOptions = {
   timeout?: number;
 };
 
-class DeviceError extends Error {
-  code: number;
-
-  /**
-   * Represents miIO device error.
-   *
-   * @param message - error message
-   * @param code - error code
-   */
-  constructor(message: string, code: number) {
-    super(message);
-    this.code = code;
-  }
-}
-
 class Device {
   static PORT = 54321;
   static MAX_CALL_INTERVAL = 60;
@@ -61,6 +45,7 @@ class Device {
   private timestamp: number;
   private lastSeenAt: number;
   private handshakePromise: Promise<HandshakeResult> | null;
+  private log: typeof logger;
 
   /**
    * Device identifier.
@@ -94,6 +79,7 @@ class Device {
     this.timestamp = params.timestamp || 0;
     this.lastSeenAt = params.lastSeenAt || 0;
     this.handshakePromise = null;
+    this.log = logger.extend(params.address);
   }
 
   /**
@@ -108,12 +94,29 @@ class Device {
     callOptions?: CallOptions,
   ): Promise<HandshakeResult> {
     const options = { ...Device.DEFAULT_CALL_OPTIONS, ...callOptions };
+    const logWithId = logger.extend(socket.ip).extend(randomString());
+    let attempt = 0;
+
     const packet = await retry(
       async () => {
+        const requestPacket = Protocol.HANDSHAKE_PACKET;
+        logWithId("-> %O", requestPacket);
+
+        attempt++;
+
+        const requestBuffer = requestPacket.toBuffer();
+        logWithId("#%d ->\n%H", attempt, requestBuffer);
+
         return await socket.send(
-          Protocol.HANDSHAKE_PACKET.toBuffer(),
-          (msg: Buffer) => Packet.fromBuffer(msg),
-          (packet) => Protocol.isHandshake(packet),
+          requestBuffer,
+          (msg: Buffer) => {
+            logWithId("<-\n%H", msg);
+            return Packet.fromBuffer(msg);
+          },
+          (packet) => {
+            logWithId("<- %O", packet);
+            return Protocol.isHandshake(packet);
+          },
           options.timeout,
         );
       },
@@ -204,7 +207,7 @@ class Device {
     params?: ParamsType,
     callOptions?: CallOptions,
   ): Promise<ResultType> {
-    const logWithId = log.extend(randomString());
+    const logWithId = this.log.extend(randomString());
 
     const options = { ...Device.DEFAULT_CALL_OPTIONS, ...callOptions };
 
@@ -219,33 +222,40 @@ class Device {
     }
 
     const id = randomInt();
-    const req = { id, method, params };
+    const body = { id, method, params };
 
-    logWithId("-> %O", req);
+    logWithId("-> %O", body);
 
-    const request = this.protocol.packRequest(
-      { id, method, params },
-      this.timestamp,
-    );
+    const requestPacket = this.protocol.packRequest(body, this.timestamp);
 
-    const requestBuffer = request.toBuffer();
+    logWithId("-> %O", requestPacket);
 
-    logWithId("->\n%H", requestBuffer);
+    const requestBuffer = requestPacket.toBuffer();
 
+    let attempt = 0;
     const { responsePacket, response } = await retry(
       async () => {
+        attempt++;
+        logWithId("#%d ->\n%H", attempt, requestBuffer);
+
         return await this.socket.send(
           requestBuffer,
           (responseBuffer: Buffer) => {
+            logWithId("<-\n%H", responseBuffer);
+
             const responsePacket = Packet.fromBuffer(responseBuffer);
+
+            logWithId("<- %O", responsePacket);
+
             const response = !Protocol.isHandshake(responsePacket)
               ? this.protocol.unpackResponse<ResultType>(responsePacket)
               : undefined;
-            return { responseBuffer, responsePacket, response };
+            return { responsePacket, response };
           },
-          ({ responseBuffer, response }) => {
+          ({ response }) => {
+            logWithId("<- %O", response);
+
             if (response?.id === id) {
-              logWithId("<-\n%H", responseBuffer);
               return true;
             }
             return false;
@@ -257,18 +267,18 @@ class Device {
       options.delay,
     );
 
-    logWithId("<- %O", response);
-
     this.timestamp = responsePacket.timestamp;
     this.lastSeenAt = Date.now();
 
     if (!response) {
-      throw new Error("Invalid response");
+      throw new DeviceError("Empty response");
     }
 
     if ("error" in response) {
       const err = response.error;
-      throw new DeviceError(err.message, err.code);
+      throw new DeviceError(
+        `Device responded with error: "${err.message}". Code: ${err.code}`,
+      );
     }
 
     return response.result;
