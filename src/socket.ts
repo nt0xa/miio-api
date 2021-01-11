@@ -1,15 +1,5 @@
 import dgram from "dgram";
-
-class SocketError extends Error {
-  /**
-   * Represents socket error.
-   *
-   * @param message - error message
-   */
-  constructor(message: string) {
-    super(message);
-  }
-}
+import { SocketError } from "./errors";
 
 class Socket {
   ip: string;
@@ -115,10 +105,14 @@ class Socket {
     const resultPromise: Promise<ResponseType> = new Promise(
       (resolve, reject) => {
         onMessage = (msg: Buffer): void => {
-          const parsed = parse(msg);
-
-          if (match(parsed)) {
-            done(() => resolve(parsed));
+          try {
+            const parsed = parse(msg);
+            if (match(parsed)) {
+              done(() => resolve(parsed));
+            }
+          } catch (err) {
+            done(() => reject(err));
+            return;
           }
         };
 

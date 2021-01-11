@@ -1,3 +1,5 @@
+import { ProtocolError } from "./errors";
+
 export type PacketData = {
   magic: number;
   size: number;
@@ -62,7 +64,7 @@ class Packet {
     const size = buf.readUInt16BE(Packet.OFFSETS.SIZE);
 
     if (size !== buf.byteLength) {
-      throw new Error(
+      throw new ProtocolError(
         `Invalid packet size, expected ${size} got ${buf.byteLength}`,
       );
     }
@@ -70,7 +72,7 @@ class Packet {
     const unknown = buf.readUInt32BE(Packet.OFFSETS.UNKNOWN);
 
     if (unknown !== 0 && unknown !== 0xffffffff) {
-      throw new Error(`Invalid unknown: 0x${unknown.toString(16)}`);
+      throw new ProtocolError(`Invalid unknown: 0x${unknown.toString(16)}`);
     }
     const deviceId = buf.readUInt32BE(Packet.OFFSETS.DEVICE_ID);
     const timestamp = buf.readUInt32BE(Packet.OFFSETS.TIMESTAMP);
