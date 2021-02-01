@@ -58,7 +58,7 @@ class Packet {
     const magic = buf.readUInt16BE(Packet.OFFSETS.MAGIC);
 
     if (magic !== Packet.MAGIC) {
-      throw new Error(`Invalid magic: 0x${magic.toString(16)}}`);
+      throw new ProtocolError(`Invalid magic: 0x${magic.toString(16)}}`);
     }
 
     const size = buf.readUInt16BE(Packet.OFFSETS.SIZE);
